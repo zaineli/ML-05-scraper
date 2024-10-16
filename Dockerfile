@@ -1,11 +1,11 @@
 # Base image with Node.js
 FROM node:18-slim
 
-# Set environment variable to indicate Puppeteer runs in Docker
+# Set environment variables for Puppeteer
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Install necessary dependencies
+# Install dependencies, including Chromium
 RUN apt-get update && apt-get install -y \
     chromium \
     ca-certificates \
@@ -25,26 +25,23 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     wget \
     --no-install-recommends && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create app directory and copy the package.json
+# Install nodemon globally
+RUN npm install -g nodemon
+
+# Create and set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Install npm dependencies (Puppeteer included)
 RUN npm install
 
-# Copy the application code
+# Copy the entire project into the container
 COPY . .
 
-# Verify that Chromium is installed
-RUN which chromium-browser || echo "Chromium not found"
-
-# Expose any necessary ports (if needed)
+# Expose any necessary ports
 EXPOSE 3000
 
-# Command to run the Puppeteer script (replace index.js with your script)
-CMD ["node", "index.js"]
+# Default command to run the application with nodemon
+CMD ["nodemon", "index.js"]
